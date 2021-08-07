@@ -1,22 +1,14 @@
 import BootstrapTable  from 'react-bootstrap-table-next';
 import paginationFactory from "react-bootstrap-table2-paginator";
-import axios from "axios";
-import {useEffect, useState} from "react";
+import { useQuery } from "react-query";
 
 export default function Countries() {
-    const [countries, setCountries] = useState([]);
-    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchCountries = async () => {
-            setLoading(true);
-            const resp = await axios.get('https://restcountries.eu/rest/v2/all');
-            setCountries(resp.data);
-            setLoading(false);
-        }
-
-        fetchCountries();
-    }, []);
+    const { isLoading, error, data} = useQuery("countries", () =>
+        fetch(
+            'https://restcountries.eu/rest/v2/all'
+        ).then((res) => res.json())
+    );
 
     const columns = [{
         dataField: "name",
@@ -31,8 +23,9 @@ export default function Countries() {
             text: 'Capital'
     }];
 
-    if (loading) return <h2>Loading...</h2>
+    if (isLoading) return <h2>Loading...</h2>
 
+    if (error) return <h2>Error fetching data</h2>
 
     const expandRow = {
         renderer: row =>
@@ -59,7 +52,7 @@ export default function Countries() {
         <div className="Countries">
             <BootstrapTable
                 keyField="name"
-                data={countries}
+                data={data}
                 columns={columns}
                 pagination={paginationFactory()}
                 expandRow={expandRow}
